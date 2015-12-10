@@ -12,6 +12,8 @@
 
 namespace TheliaSmarty\Template\Plugins;
 
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Routing\Router;
 use TheliaSmarty\Template\SmartyParser;
 use TheliaSmarty\Template\SmartyPluginDescriptor;
 use TheliaSmarty\Template\AbstractSmartyPlugin;
@@ -25,11 +27,19 @@ class UrlGenerator extends AbstractSmartyPlugin
     protected $request;
 
     protected $tokenProvider;
+    /** @var ContainerInterface */
+    private $container;
 
-    public function __construct(Request $request, TokenProvider $tokenProvider)
+    /**
+     * @param Request            $request
+     * @param TokenProvider      $tokenProvider
+     * @param ContainerInterface $container         Needed to get all router.
+     */
+    public function __construct(Request $request, TokenProvider $tokenProvider, ContainerInterface $container)
     {
         $this->request = $request;
         $this->tokenProvider = $tokenProvider;
+        $this->container = $container;
     }
 
     /**
@@ -44,7 +54,10 @@ class UrlGenerator extends AbstractSmartyPlugin
         // the path to process
         $current = $this->getParam($params, 'current', false);
         $path  = $this->getParam($params, 'path', null);
-        $file  = $this->getParam($params, 'file', null); // Do not invoke index.php in URL (get a static file in web space
+        // Do not invoke index.php in URL (get a static file in web space
+        $file = $this->getParam($params, 'file', null);
+        $id = $this->getParam($params, 'routeId', null);
+        $router = $this->getParam($params, 'router', null);
 
         if ($current) {
             $path = $this->request->getPathInfo();
@@ -57,25 +70,42 @@ class UrlGenerator extends AbstractSmartyPlugin
             );
         }
 
+        if ($id != null && $router != null) {
+            // get url by router and id
+            /** @var Router $router */
+            $router = $this->container->get($router);
+            if (!$router) {
+                throw new \InvalidArgumentException(sprintf("Router %S doesn't exist", $router));
+            }
 
+            $excludeParams = $this->resolvePath($params, $path, $smarty);
 
-        if ($file !== null) {
-            $path = $file;
-            $mode = URL::PATH_TO_FILE;
-        } elseif ($path !== null) {
-            $mode = URL::WITH_INDEX_PAGE;
+            $url = $router->generate(
+                $id,
+                $this->getArgsFromParam($params, array_merge(['id','router'], $excludeParams))
+            );
         } else {
-            throw new \InvalidArgumentException(Translator::getInstance()->trans("Please specify either 'path' or 'file' parameter in {url} function."));
+            if ($file !== null) {
+                $path = $file;
+                $mode = URL::PATH_TO_FILE;
+            } elseif ($path !== null) {
+                $mode = URL::WITH_INDEX_PAGE;
+            } else {
+                throw new \InvalidArgumentException(
+                    Translator::getInstance()->trans(
+                        "Please specify either 'path' or 'file' parameter in {url} function."
+                    )
+                );
+            }
+
+            $excludeParams = $this->resolvePath($params, $path, $smarty);
+
+            $url = URL::getInstance()->absoluteUrl(
+                $path,
+                $this->getArgsFromParam($params, array_merge(['noamp', 'path', 'file', 'target'], $excludeParams)),
+                $mode
+            );
         }
-
-        $excludeParams = $this->resolvePath($params, $path, $smarty);
-
-        $url = URL::getInstance()->absoluteUrl(
-            $path,
-            $this->getArgsFromParam($params, array_merge(['noamp', 'path', 'file', 'target'], $excludeParams)),
-            $mode
-        );
-
         return $this->applyNoAmpAndTarget($params, $url);
     }
 
