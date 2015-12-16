@@ -56,8 +56,16 @@ class UrlGenerator extends AbstractSmartyPlugin
         $path  = $this->getParam($params, 'path', null);
         // Do not invoke index.php in URL (get a static file in web space
         $file = $this->getParam($params, 'file', null);
-        $id = $this->getParam($params, 'routeId', null);
-        $router = $this->getParam($params, 'router', null);
+        $routeId = $this->getParam($params, 'route_id', null);
+        // select default router
+        if ($this->request->fromAdmin()) {
+            $defaultRouter = 'router.admin';
+        } elseif ($this->request->fromFront()) {
+            $defaultRouter = 'router.front';
+        } else {
+            $defaultRouter = null;
+        }
+        $routerId = $this->getParam($params, 'router', $defaultRouter);
 
         if ($current) {
             $path = $this->request->getPathInfo();
@@ -70,19 +78,16 @@ class UrlGenerator extends AbstractSmartyPlugin
             );
         }
 
-        if ($id != null && $router != null) {
+        if ($routeId && $routerId) {
             // get url by router and id
             /** @var Router $router */
-            $router = $this->container->get($router);
-            if (!$router) {
-                throw new \InvalidArgumentException(sprintf("Router %S doesn't exist", $router));
-            }
+            $router = $this->container->get($routerId);
 
             $excludeParams = $this->resolvePath($params, $path, $smarty);
 
             $url = $router->generate(
-                $id,
-                $this->getArgsFromParam($params, array_merge(['id','router'], $excludeParams))
+                $routeId,
+                $this->getArgsFromParam($params, array_merge(['route_id','router'], $excludeParams))
             );
         } else {
             if ($file !== null) {
