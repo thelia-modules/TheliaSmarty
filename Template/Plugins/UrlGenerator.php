@@ -87,7 +87,8 @@ class UrlGenerator extends AbstractSmartyPlugin
 
             $url = $router->generate(
                 $routeId,
-                $this->getArgsFromParam($params, array_merge(['route_id','router'], $excludeParams))
+                $this->getArgsFromParam($params, array_merge(['route_id','router'], $excludeParams)),
+                Router::ABSOLUTE_URL
             );
         } else {
             if ($file !== null) {
@@ -98,7 +99,7 @@ class UrlGenerator extends AbstractSmartyPlugin
             } else {
                 throw new \InvalidArgumentException(
                     Translator::getInstance()->trans(
-                        "Please specify either 'path' or 'file' parameter in {url} function."
+                        "Please specify either 'path', 'router_id' or 'file' parameter in {url} function."
                     )
                 );
             }
