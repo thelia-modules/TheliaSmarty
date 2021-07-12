@@ -118,7 +118,10 @@ class FrontAssets extends AbstractSmartyPlugin
             $class = $params['class'];
         }
 
-        return '<svg class="' . $class . '"><use xlink:href="#svg-icons-' . $params['icon'] . '"></use></svg>';
+        $urlSvg = $this->domain() . $this->manifest["sprite.svg"];
+        $result = '<svg class="' . $class . '"><use xlink:href="' . $urlSvg . '#' . $params['icon'] . '"></use></svg>';
+
+        return $result;
     }
 
     public function renderSvg($params)
