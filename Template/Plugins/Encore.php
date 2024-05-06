@@ -135,7 +135,7 @@ class Encore extends AbstractSmartyPlugin
     {
         $res = '';
         foreach ($this->getWebpackJsFiles($args) as $asset) {
-            $res .= sprintf('<link rel="prefetch" as="script" href="%s">', $asset);
+            $res .= sprintf('<link rel="prefetch" href="%s">', $asset);
         }
         $this->entrypointLookupCollection->getEntrypointLookup($this->templateEnv)->reset();
 
