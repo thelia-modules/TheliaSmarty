@@ -12,6 +12,7 @@
 
 namespace TheliaSmarty\Template\Assets;
 
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Thelia\Core\Template\Assets\AssetManagerInterface;
 use Thelia\Core\Template\Assets\AssetResolverInterface;
 use Thelia\Core\Template\ParserInterface;
@@ -19,7 +20,9 @@ use Thelia\Core\Template\TemplateDefinition;
 use Thelia\Log\Tlog;
 use Thelia\Model\ConfigQuery;
 use Thelia\Tools\URL;
+use TheliaSmarty\Template\SmartyParser;
 
+#[AutoconfigureTag('thelia.parser.asset')]
 class SmartyAssetsResolver implements AssetResolverInterface
 {
     protected $path_relative_to_web_root;
@@ -27,6 +30,7 @@ class SmartyAssetsResolver implements AssetResolverInterface
     protected $assetsManager;
 
     protected $cdnBaseUrl;
+
 
     /**
      * Creates a new SmartyAssetsManager instance.
@@ -312,4 +316,10 @@ class SmartyAssetsResolver implements AssetResolverInterface
             $pathList['template'][] = [$templateName, $directories[$templateName][$source]];
         }
     }
+
+    public function supportParser(ParserInterface $parser): bool
+    {
+        return SmartyParser::class === $parser::class;
+    }
+
 }
