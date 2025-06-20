@@ -28,7 +28,7 @@ class TheliaSmarty extends BaseModule
      */
     const DOMAIN_NAME = 'theliasmarty';
 
-    public static function getCompilers()
+    public static function getCompilers(): array
     {
         return [
             new RegisterParserPluginPass(),
