@@ -42,10 +42,7 @@
     <service id="smarty.plugin.type" class="TheliaSmarty\Template\Plugins\Type"/>
 
     <service id="smarty.plugin.render" class="TheliaSmarty\Template\Plugins\Render"/>
-
-    <service id="smarty.plugin.format">
-
-    </service>
+    
     <service id="smart.plugin.form" class="TheliaSmarty\Template\Plugins\Form"/>
 
     <service id="smarty.plugin.translation" class="TheliaSmarty\Template\Plugins\Translation"/>
