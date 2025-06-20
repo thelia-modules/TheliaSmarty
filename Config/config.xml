@@ -7,29 +7,29 @@
 
     <services>
         <!-- Parser configuration -->
-        <service id="thelia.parser" alias="TheliaSmarty\Template\SmartyParser" public="true"/>
-        <service id="Thelia\Core\Template\ParserInterface" alias="TheliaSmarty\Template\SmartyParser"/>
+        <service id="thelia.parser" class="TheliaSmarty\Template\SmartyParser" public="true"/>
+        <service id="Thelia\Core\Template\ParserInterface" class="TheliaSmarty\Template\SmartyParser"/>
 
-        <service id="Thelia\Core\Template\ParserHelperInterface" alias="TheliaSmarty\Template\SmartyHelper" />
-        <service id="thelia.parser.helper" alias="TheliaSmarty\Template\SmartyHelper" />
+        <service id="Thelia\Core\Template\ParserHelperInterface" class="TheliaSmarty\Template\SmartyHelper" />
+        <service id="thelia.parser.helper" class="TheliaSmarty\Template\SmartyHelper" />
 
         <!--  The assets resolver -->
-        <service id="Thelia\Core\Template\Assets\AssetResolverInterface" alias="TheliaSmarty\Template\Assets\SmartyAssetsResolver"/>
-        <service id="thelia.parser.asset.resolver" alias="TheliaSmarty\Template\Assets\SmartyAssetsResolver"/>
+        <service id="Thelia\Core\Template\Assets\AssetResolverInterface" class="TheliaSmarty\Template\Assets\SmartyAssetsResolver"/>
+        <service id="thelia.parser.asset.resolver" class="TheliaSmarty\Template\Assets\SmartyAssetsResolver"/>
 
         <!--  Smarty parser plugins-->
 
-        <service id="smarty.plugin.assets" alias="TheliaSmarty\Template\Plugins\Assets"/>
+        <service id="smarty.plugin.assets" class="TheliaSmarty\Template\Plugins\Assets"/>
 
-        <service id="smarty.plugin.format" alias="TheliaSmarty\Template\Plugins\Format"/>
+        <service id="smarty.plugin.format" class="TheliaSmarty\Template\Plugins\Format"/>
 
-        <service id="smarty.plugin.thelialoop" alias="TheliaSmarty\Template\Plugins\TheliaLoop" public="true"/>
+        <service id="smarty.plugin.thelialoop" class="TheliaSmarty\Template\Plugins\TheliaLoop" public="true"/>
 
-        <service id="smarty.plugin.cartpostage" alias="TheliaSmarty\Template\Plugins\CartPostage"/>
+        <service id="smarty.plugin.cartpostage" class="TheliaSmarty\Template\Plugins\CartPostage"/>
 
-        <service id="smarty.plugin.type" alias="TheliaSmarty\Template\Plugins\Type"/>
+        <service id="smarty.plugin.type" class="TheliaSmarty\Template\Plugins\Type"/>
 
-        <service id="smarty.plugin.render" alias="TheliaSmarty\Template\Plugins\Render"/>
+        <service id="smarty.plugin.render" class="TheliaSmarty\Template\Plugins\Render"/>
 
         <service id="TheliaSmarty\Template\Plugins\Form">
             <tag name="thelia.parser.register_plugin"/>
@@ -43,25 +43,25 @@
                 <argument>%Thelia.parser.forms%</argument>
             </call>
         </service>
-        <service id="smart.plugin.form" alias="TheliaSmarty\Template\Plugins\Form"/>
+        <service id="smart.plugin.form" class="TheliaSmarty\Template\Plugins\Form"/>
 
-        <service id="smarty.plugin.translation" alias="TheliaSmarty\Template\Plugins\Translation"/>
+        <service id="smarty.plugin.translation" class="TheliaSmarty\Template\Plugins\Translation"/>
 
-        <service id="smarty.plugin.module" alias="TheliaSmarty\Template\Plugins\Module"/>
+        <service id="smarty.plugin.module" class="TheliaSmarty\Template\Plugins\Module"/>
 
-        <service id="smarty.url.module" alias="TheliaSmarty\Template\Plugins\UrlGenerator"/>
+        <service id="smarty.url.module" class="TheliaSmarty\Template\Plugins\UrlGenerator"/>
 
-        <service id="smarty.plugin.security" alias="TheliaSmarty\Template\Plugins\Security"/>
+        <service id="smarty.plugin.security" class="TheliaSmarty\Template\Plugins\Security"/>
 
-        <service id="smarty.plugin.dataAccess" alias="TheliaSmarty\Template\Plugins\DataAccessFunctions"/>
+        <service id="smarty.plugin.dataAccess" class="TheliaSmarty\Template\Plugins\DataAccessFunctions"/>
 
-        <service id="smarty.plugin.adminUtilities" alias="TheliaSmarty\Template\Plugins\AdminUtilities"/>
+        <service id="smarty.plugin.adminUtilities" class="TheliaSmarty\Template\Plugins\AdminUtilities"/>
 
-        <service id="smarty.plugin.flashMessage" alias="TheliaSmarty\Template\Plugins\FlashMessage"/>
+        <service id="smarty.plugin.flashMessage" class="TheliaSmarty\Template\Plugins\FlashMessage"/>
 
-        <service id="smarty.plugin.hook" alias="TheliaSmarty\Template\Plugins\Hook"/>
+        <service id="smarty.plugin.hook" class="TheliaSmarty\Template\Plugins\Hook"/>
 
-        <service id="smarty.plugin.cache" alias="TheliaSmarty\Template\Plugins\Cache"/>
+        <service id="smarty.plugin.cache" class="TheliaSmarty\Template\Plugins\Cache"/>
 
         <service id="TheliaSmarty\Template\Plugins\VarDumper">
             <tag name="thelia.parser.register_plugin"/>
