@@ -497,14 +497,24 @@ class SmartyParser extends \Smarty implements ParserInterface
                     $plugin->getMethod()
                 ;
 
-                $this->registerPlugin(
-                    $plugin->getType(),
-                    $plugin->getName(),
-                    [
-                        $plugin->getClass(),
-                        $methodName,
-                    ]
-                );
+                try {
+                    $this->registerPlugin(
+                        $plugin->getType(),
+                        $plugin->getName(),
+                        [
+                            $plugin->getClass(),
+                            $methodName,
+                        ]
+                    );
+                } catch(\SmartyException $e) {
+                    Tlog::getInstance()->error(
+                        sprintf(
+                            'Error while registering plugin %s: %s',
+                            $plugin->getName(),
+                            $e->getMessage()
+                        )
+                    );
+                }
             }
         }
     }
