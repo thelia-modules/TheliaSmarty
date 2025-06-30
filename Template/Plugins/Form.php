@@ -30,6 +30,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use Thelia\Core\Form\TheliaFormFactory;
 use Thelia\Core\Form\Type\TheliaType;
 use Thelia\Core\Template\Element\Exception\ElementNotFoundException;
+use Thelia\Core\Template\Parser\ParserResolver;
 use Thelia\Core\Template\ParserContext;
 use Thelia\Core\Template\ParserInterface;
 use Thelia\Form\BaseForm;
@@ -71,11 +72,9 @@ class Form extends AbstractSmartyPlugin
     /** @var ParserContext */
     protected $parserContext;
 
-    /** @var ParserInterface */
-    protected $parser;
-
     /** @var TranslatorInterface */
     protected $translator;
+
 
     /** @var array|TheliaFormFactory */
     protected $formFactory = [];
@@ -89,14 +88,13 @@ class Form extends AbstractSmartyPlugin
     public function __construct(
         TheliaFormFactory $formFactory,
         ParserContext $parserContext,
-        ParserInterface $parser,
         TranslatorInterface $translator,
         #[Autowire('%Thelia.parser.forms%')]
-        protected array $formDefinition = []
+        protected array $formDefinition = [],
+        protected ParserResolver $parserResolver,
     ) {
         $this->formFactory = $formFactory;
         $this->parserContext = $parserContext;
-        $this->parser = $parser;
         $this->translator = $translator;
     }
 
@@ -122,7 +120,6 @@ class Form extends AbstractSmartyPlugin
         if (null == $name) {
             $name = 'thelia.empty';
         }
-
         if (!isset($this->formDefinition[$name])) {
             $name = array_search($name, $this->formDefinition);
             if (false === $name) {
@@ -380,9 +377,10 @@ class Form extends AbstractSmartyPlugin
         $data = '';
 
         $templateStyle = $this->getParam($params, 'template', 'standard');
+        $parser = $this->parserResolver->getParser($templateStyle, $templateFile.'.html');
 
         $snippet_content = file_get_contents(
-            $this->parser->getTemplateDefinition()->getTemplateFilePath(
+            $parser->getTemplateDefinition()->getTemplateFilePath(
                 'forms'.DS.$templateStyle.DS.$templateFile.'.html'
             )
         );
