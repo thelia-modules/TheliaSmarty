@@ -420,6 +420,11 @@ class SmartyParser extends \Smarty implements ParserInterface
      */
     public function render($realTemplateName, array $parameters = [], $compressOutput = true)
     {
+        if (!str_ends_with($realTemplateName, '.'.$this->getFileExtension())) {
+            $realTemplateName = (string) pathinfo($realTemplateName, \PATHINFO_FILENAME);
+            $realTemplateName .= '.'.$this->getFileExtension();
+        }
+        
         if (false === $this->templateExists($realTemplateName) || false === $this->checkTemplate($realTemplateName)) {
             throw new ResourceNotFoundException(Translator::getInstance()->trans('Template file %file cannot be found.', ['%file' => $realTemplateName]));
         }
