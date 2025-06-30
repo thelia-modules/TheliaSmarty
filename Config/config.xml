@@ -6,12 +6,6 @@
 
 
   <services>
-    <!-- Parser configuration -->
-    <service id="thelia.parser" class="TheliaSmarty\Template\SmartyParser" public="true"/>
-    <service id="Thelia\Core\Template\ParserInterface" class="TheliaSmarty\Template\SmartyParser"/>
-
-    <service id="Thelia\Core\Template\ParserHelperInterface" class="TheliaSmarty\Template\SmartyHelper"/>
-    <service id="thelia.parser.helper" class="TheliaSmarty\Template\SmartyHelper"/>
 
     <!--  The assets resolver -->
     <service id="Thelia\Core\Template\Assets\AssetResolverInterface"
