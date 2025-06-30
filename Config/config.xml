@@ -16,18 +16,7 @@
 
     <service id="smarty.plugin.assets" class="TheliaSmarty\Template\Plugins\Assets"/>
 
-    <service id="smarty.plugin.format" class="TheliaSmarty\Template\Plugins\Format">
-      <tag name="thelia.parser.register_plugin"/>
-
-      <argument type="service" id="thelia.form_factory"/>
-      <argument type="service" id="thelia.parser.context"/>
-      <argument type="service" id="thelia.parser"/>
-      <argument type="service" id="thelia.translator"/>
-
-      <call method="setFormDefinition">
-        <argument>%Thelia.parser.forms%</argument>
-      </call>
-    </service>
+    <service id="smarty.plugin.format" class="TheliaSmarty\Template\Plugins\Format"/>
 
     <service id="smarty.plugin.thelialoop" class="TheliaSmarty\Template\Plugins\TheliaLoop" public="true"/>
 
