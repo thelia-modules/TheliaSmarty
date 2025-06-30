@@ -12,6 +12,7 @@
 
 namespace TheliaSmarty\Template\Plugins;
 
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\Form\ChoiceList\View\ChoiceView;
 use Symfony\Component\Form\Extension\Core\Type\BirthdayType;
@@ -76,8 +77,6 @@ class Form extends AbstractSmartyPlugin
     /** @var TranslatorInterface */
     protected $translator;
 
-    protected $formDefinition = [];
-
     /** @var array|TheliaFormFactory */
     protected $formFactory = [];
 
@@ -91,7 +90,9 @@ class Form extends AbstractSmartyPlugin
         TheliaFormFactory $formFactory,
         ParserContext $parserContext,
         ParserInterface $parser,
-        TranslatorInterface $translator
+        TranslatorInterface $translator,
+        #[Autowire('%Thelia.parser.forms%')]
+        protected array $formDefinition = []
     ) {
         $this->formFactory = $formFactory;
         $this->parserContext = $parserContext;
