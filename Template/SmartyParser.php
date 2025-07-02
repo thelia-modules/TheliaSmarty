@@ -420,12 +420,20 @@ class SmartyParser extends \Smarty implements ParserInterface
      */
     public function render($realTemplateName, array $parameters = [], $compressOutput = true)
     {
-        if (!str_ends_with($realTemplateName, '.'.$this->getFileExtension())) {
-            $realTemplateName = (string) pathinfo($realTemplateName, \PATHINFO_FILENAME);
-            $realTemplateName .= '.'.$this->getFileExtension();
+        $isFound = false;
+        foreach($this->getFileExtensions() as $fileExtension) {
+            $tempRealTemplateName = $realTemplateName;
+            if (!str_ends_with($realTemplateName, '.'.$fileExtension)) {
+                $tempRealTemplateName = (string) pathinfo($tempRealTemplateName, \PATHINFO_FILENAME);
+                $tempRealTemplateName .= '.'.$fileExtension;
+            }
+            if (false !== $this->templateExists($tempRealTemplateName) && false !== $this->checkTemplate($tempRealTemplateName)) {
+                $isFound = true;
+                $realTemplateName = $tempRealTemplateName;
+                break;
+            }
         }
-        
-        if (false === $this->templateExists($realTemplateName) || false === $this->checkTemplate($realTemplateName)) {
+        if (!$isFound) {
             throw new ResourceNotFoundException(Translator::getInstance()->trans('Template file %file cannot be found.', ['%file' => $realTemplateName]));
         }
 
@@ -498,10 +506,8 @@ class SmartyParser extends \Smarty implements ParserInterface
             foreach ($plugins as $plugin) {
                 // Use the wrapper to ensure Smarty 3.1.33 compatibility
                 $methodName = $this->useMethodCallWrapper && $plugin->getType() === 'function' ?
-                    AbstractSmartyPlugin::WRAPPED_METHOD_PREFIX.$plugin->getMethod() :
-                    $plugin->getMethod()
-                ;
-
+                    AbstractSmartyPlugin::WRAPPED_METHOD_PREFIX . $plugin->getMethod() :
+                    $plugin->getMethod();
                 try {
                     $this->registerPlugin(
                         $plugin->getType(),
@@ -532,6 +538,11 @@ class SmartyParser extends \Smarty implements ParserInterface
     public function getFileExtension(): string
     {
         return 'html';
+    }
+
+    public function getFileExtensions(): array
+    {
+        return ['html', 'tpl'];
     }
 
     public static function getDefaultPriority(): int
