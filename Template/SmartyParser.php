@@ -336,6 +336,9 @@ class SmartyParser extends \Smarty implements ParserInterface
             $ret->setPath($customPath);
         }
 
+        if ($ret == null) {
+            $ret = $this->templateHelper->getActiveAdminTemplate();
+        }
         return $ret;
     }
 
