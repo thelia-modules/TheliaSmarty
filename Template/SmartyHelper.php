@@ -32,7 +32,7 @@ class SmartyHelper implements ParserHelperInterface
      *
      * @return array array of functions with 2 index name and attributes an array of name, value
      */
-    public function getFunctionsDefinition($content, array $functions = [])
+    public function getFunctionsDefinition($content, array $functions = []): array
     {
         $strlen = \strlen($content);
 

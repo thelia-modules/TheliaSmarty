@@ -322,7 +322,7 @@ class SmartyParser extends \Smarty implements ParserInterface
      *
      * @return TemplateDefinition
      */
-    public function getTemplateDefinition($webAssetTemplateName = false)
+    public function getTemplateDefinition($webAssetTemplateName = false): TemplateDefinition
     {
         // Deep clone of template definition. We could change the template descriptor of template definition,
         // and we don't want to change the current template definition.
@@ -418,7 +418,7 @@ class SmartyParser extends \Smarty implements ParserInterface
      *
      * @return string the rendered template text
      */
-    public function render($realTemplateName, array $parameters = [], $compressOutput = true)
+    public function render($realTemplateName, array $parameters = [], $compressOutput = true): string
     {
         $isFound = false;
         foreach($this->getFileExtensions() as $fileExtension) {
@@ -469,7 +469,7 @@ class SmartyParser extends \Smarty implements ParserInterface
      *
      * @return string the rendered template text
      */
-    public function renderString($templateText, array $parameters = [], $compressOutput = true)
+    public function renderString($templateText, array $parameters = [], $compressOutput = true): string
     {
         return $this->internalRenderer('string', $templateText, $parameters, $compressOutput);
     }

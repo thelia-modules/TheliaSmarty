@@ -14,8 +14,10 @@ namespace TheliaSmarty\Template;
 
 use Smarty;
 use Symfony\Component\Stopwatch\Stopwatch;
+use Thelia\Core\HttpFoundation\Request;
 use Thelia\Core\Template\ParserInterface;
 use Thelia\Core\Template\TemplateDefinition;
+use Thelia\Core\Template\TemplateHelperInterface;
 
 class DataCollectorSmartyParser extends \Smarty implements ParserInterface
 {
@@ -32,7 +34,7 @@ class DataCollectorSmartyParser extends \Smarty implements ParserInterface
         parent::__construct();
     }
 
-    public function render($realTemplateName, array $parameters = [], $compressOutput = true)
+    public function render($realTemplateName, array $parameters = [], $compressOutput = true): string
     {
         $this->stopwatch->start($realTemplateName, 'template');
         $timeStart = hrtime(true);
@@ -49,7 +51,7 @@ class DataCollectorSmartyParser extends \Smarty implements ParserInterface
         return $render;
     }
 
-    public function renderString($templateText, array $parameters = [], $compressOutput = true)
+    public function renderString($templateText, array $parameters = [], $compressOutput = true): string
     {
         return $this->smartyParser->renderString($templateText, $parameters, $compressOutput);
     }
@@ -83,7 +85,7 @@ class DataCollectorSmartyParser extends \Smarty implements ParserInterface
         return $this;
     }
 
-    public function getRequest()
+    public function getRequest(): Request
     {
         return $this->smartyParser->getRequest();
     }
@@ -103,17 +105,17 @@ class DataCollectorSmartyParser extends \Smarty implements ParserInterface
         $this->smartyParser->setTemplateDefinition($templateDefinition, $fallbackToDefaultTemplate);
     }
 
-    public function getTemplateDefinition($webAssetTemplateName = false)
+    public function getTemplateDefinition($webAssetTemplateName = false): TemplateDefinition
     {
         return $this->smartyParser->getTemplateDefinition();
     }
 
-    public function hasTemplateDefinition()
+    public function hasTemplateDefinition(): bool
     {
         return $this->smartyParser->hasTemplateDefinition();
     }
 
-    public function getFallbackToDefaultTemplate()
+    public function getFallbackToDefaultTemplate(): bool
     {
         return $this->smartyParser->getFallbackToDefaultTemplate();
     }
@@ -128,7 +130,7 @@ class DataCollectorSmartyParser extends \Smarty implements ParserInterface
         return $this->smartyParser->getTemplateDirectories($templateType);
     }
 
-    public function getTemplateHelper()
+    public function getTemplateHelper(): TemplateHelperInterface
     {
         return $this->smartyParser->getTemplateHelper();
     }

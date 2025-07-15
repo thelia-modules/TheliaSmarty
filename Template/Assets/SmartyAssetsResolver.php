@@ -115,7 +115,7 @@ class SmartyAssetsResolver implements AssetResolverInterface
      *
      * @return mixed the path to directory containing the file, or null if the file doesn't exists
      */
-    public function resolveAssetSourcePath($source, $templateName, $fileName, ParserInterface $parserInterface)
+    public function resolveAssetSourcePath(string $source, string $templateName, string $fileName, ParserInterface $parserInterface): mixed
     {
         $tpl = $parserInterface->getTemplateDefinition(false);
 
@@ -147,12 +147,12 @@ class SmartyAssetsResolver implements AssetResolverInterface
      * @return mixed the path to directory containing the file, or null if the file doesn't exists
      */
     public function resolveAssetSourcePathAndTemplate(
-        $source,
-        $templateName,
-        $fileName,
+        string $source,
+        string $templateName,
+        string $fileName,
         ParserInterface $parserInterface,
         TemplateDefinition &$templateDefinition
-    ) {
+    ): mixed {
         // A simple cache for the path list, to gain some performances
         static $cache = [];
 
