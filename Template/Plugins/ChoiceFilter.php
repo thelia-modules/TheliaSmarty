@@ -1,9 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the Thelia package.
+ * http://www.thelia.net
+ *
+ * (c) OpenStudio <info@thelia.net>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace TheliaSmarty\Template\Plugins;
 
+use Propel\Runtime\ActiveQuery\Criteria;
 use Propel\Runtime\Collection\ObjectCollection;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Thelia\Api\Bridge\Propel\Filter\CustomFilters\Filters\Type\CheckboxType;
+use Thelia\Api\Bridge\Propel\Filter\CustomFilters\FilterService;
 use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Core\Security\SecurityContext;
 use Thelia\Core\Translation\Translator;
@@ -16,8 +31,11 @@ use TheliaSmarty\TheliaSmarty;
 
 class ChoiceFilter extends AbstractSmartyPlugin
 {
-    public function __construct(private readonly RequestStack $requestStack, private readonly SecurityContext $securityContext)
-    {
+    public function __construct(
+        private readonly RequestStack $requestStack,
+        private readonly SecurityContext $securityContext,
+        private readonly FilterService $filterService,
+    ) {
     }
 
     public function templateChoiceFilter(array $params, \Smarty_Internal_Template $template): void
@@ -29,8 +47,8 @@ class ChoiceFilter extends AbstractSmartyPlugin
 
         $locales = $this->getEditLocales();
 
-        $features = ChoiceFilterQuery::findFeaturesByTemplateId($templateId, $locales);
-        $attributes = ChoiceFilterQuery::findAttributesByTemplateId($templateId, $locales);
+        $features = ChoiceFilterQuery::findFeaturesByTemplateId((int) $templateId, $locales);
+        $attributes = ChoiceFilterQuery::findAttributesByTemplateId((int) $templateId, $locales);
         $others = ChoiceFilterOtherQuery::findOther($locales);
 
         /** @var \ChoiceFilter\Model\ChoiceFilter[] $choiceFilters */
@@ -39,16 +57,21 @@ class ChoiceFilter extends AbstractSmartyPlugin
             ->orderByPosition()
             ->find();
 
-        if (count($choiceFilters)) {
+        if (\count($choiceFilters)) {
             $enabled = true;
         } else {
             $enabled = false;
         }
 
         $filters = self::merge($choiceFilters, $features, $attributes, $others);
-
-        $template->assign('filters',$filters);
-        $template->assign('enabled',$enabled);
+        $filters = $this->addDisplayType(
+            filters: $filters,
+            id: (int) $templateId,
+            defaultFilter: 'filterByTemplateId'
+        );
+        $template->assign('filters', $filters);
+        $template->assign('filters_types', $this->filterService->getFilterTypes());
+        $template->assign('enabled', $enabled);
     }
 
     public function categoryChoiceFilter(array $params, \Smarty_Internal_Template $template): void
@@ -74,7 +97,7 @@ class ChoiceFilter extends AbstractSmartyPlugin
             $others = new ObjectCollection();
             $choiceFilters = new ObjectCollection();
 
-            $messageInfo[] = Translator::getInstance()->trans('This category uses no filter configuration',[],TheliaSmarty::DOMAIN_NAME);
+            $messageInfo[] = Translator::getInstance()->trans('This category uses no filter configuration', [], TheliaSmarty::DOMAIN_NAME);
         } else {
             $features = ChoiceFilterQuery::findFeaturesByTemplateId(
                 $templateId,
@@ -87,19 +110,24 @@ class ChoiceFilter extends AbstractSmartyPlugin
             $others = ChoiceFilterOtherQuery::findOther();
 
             if (null === $categoryId) {
-                $messageInfo[] = Translator::getInstance()->trans('This category uses the template configuration %templateId', ['%templateId' => $templateId],TheliaSmarty::DOMAIN_NAME);
+                $messageInfo[] = Translator::getInstance()->trans('This category uses the template configuration %templateId', ['%templateId' => $templateId], TheliaSmarty::DOMAIN_NAME);
             } elseif ($categoryId == $category->getId()) {
                 $enabled = true;
-                $messageInfo[] = Translator::getInstance()->trans('This category uses its own filter configuration',[],TheliaSmarty::DOMAIN_NAME);
+                $messageInfo[] = Translator::getInstance()->trans('This category uses its own filter configuration', [], TheliaSmarty::DOMAIN_NAME);
             } else {
-                $messageInfo[] = Translator::getInstance()->trans('This category uses the filter configuration of the category %categoryId', ['%categoryId' => $categoryId],TheliaSmarty::DOMAIN_NAME);
+                $messageInfo[] = Translator::getInstance()->trans('This category uses the filter configuration of the category %categoryId', ['%categoryId' => $categoryId], TheliaSmarty::DOMAIN_NAME);
             }
         }
 
         $filters = self::merge($choiceFilters, $features, $attributes, $others);
-
+        $filters = $this->addDisplayType(
+            filters: $filters,
+            id: (int) $params['category_id'],
+            defaultFilter: 'filterByCategoryId'
+        );
         $template->assign('category_id', $params['category_id']);
         $template->assign('filters', $filters);
+        $template->assign('filters_types', $this->filterService->getFilterTypes());
         $template->assign('enabled', $enabled);
         $template->assign('messageInfo', $messageInfo);
     }
@@ -124,19 +152,13 @@ class ChoiceFilter extends AbstractSmartyPlugin
 
     private static function merge($choiceFilters, $features, $attributes, $others): array
     {
-        $featuresArray = array_map(static function ($feature) {
-            return array_merge($feature, ['Type' => 'feature', 'Visible' => 1]);
-        }, $features->toArray());
+        $featuresArray = array_map(static fn ($feature) => array_merge($feature, ['Type' => 'feature', 'Visible' => 1]), $features->toArray());
 
-        $attributesArray = array_map(static function ($attribute) {
-            return array_merge($attribute, ['Type' => 'attribute', 'Visible' => 1]);
-        }, $attributes->toArray());
+        $attributesArray = array_map(static fn ($attribute) => array_merge($attribute, ['Type' => 'attribute', 'Visible' => 1]), $attributes->toArray());
 
-        $othersArray = array_map(static function ($other) {
-            return $other;
-        }, $others->toArray());
+        $othersArray = array_map(static fn ($other) => $other, $others->toArray());
 
-        if (count($choiceFilters)) {
+        if (\count($choiceFilters)) {
             $merge = [];
             foreach ($choiceFilters as $choiceFilter) {
                 if (null !== $attributeId = $choiceFilter->getAttributeId()) {
@@ -180,5 +202,29 @@ class ChoiceFilter extends AbstractSmartyPlugin
         }, $merge);
 
         return $merge;
+    }
+
+    private function addDisplayType(array $filters, int $id, string $defaultFilter): array
+    {
+        foreach ($filters as $index => $filter) {
+            $filterByType = 'filterBy'.ucfirst($filter['Type']).'Id';
+            $query = ChoiceFilterQuery::create();
+            $query
+                ->$defaultFilter($id);
+            if ($filter['Type'] === 'category' || !method_exists($query, $filterByType)) {
+                $query->useChoiceFilterOtherQuery()->filterByType($filter['Type'])->endUse();
+            }
+            if ($filter['Type'] !== 'category' && method_exists($query, $filterByType)) {
+                $query->$filterByType($filter['Id'], Criteria::EQUAL);
+            }
+            $choiceFilter = $query->findOne();
+            if (null === $choiceFilter) {
+                $filters[$index]['DisplayType'] = CheckboxType::getName();
+                continue;
+            }
+            $filters[$index]['DisplayType'] = $choiceFilter->getType();
+        }
+
+        return $filters;
     }
 }
