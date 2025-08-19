@@ -512,14 +512,16 @@ class SmartyParser extends \Smarty implements ParserInterface
                     AbstractSmartyPlugin::WRAPPED_METHOD_PREFIX . $plugin->getMethod() :
                     $plugin->getMethod();
                 try {
-                    $this->registerPlugin(
-                        $plugin->getType(),
-                        $plugin->getName(),
-                        [
-                            $plugin->getClass(),
-                            $methodName,
-                        ]
-                    );
+                    if (!isset($this->registered_plugins[ $plugin->getType() ][ $plugin->getName() ])) {
+                        $this->registerPlugin(
+                            $plugin->getType(),
+                            $plugin->getName(),
+                            [
+                                $plugin->getClass(),
+                                $methodName,
+                            ]
+                        );
+                    }
                 } catch(\SmartyException $e) {
                     Tlog::getInstance()->error(
                         sprintf(
