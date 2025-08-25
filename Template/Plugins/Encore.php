@@ -17,6 +17,7 @@ use Symfony\Component\Asset\VersionStrategy\JsonManifestVersionStrategy;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\WebpackEncoreBundle\Asset\EntrypointLookupCollectionInterface;
 use Symfony\WebpackEncoreBundle\Asset\TagRenderer;
 use Thelia\Core\HttpFoundation\Request;
@@ -44,11 +45,14 @@ class Encore extends AbstractSmartyPlugin
         private EntrypointLookupCollectionInterface $entrypointLookupCollection,
         private TemplateHelperInterface $templateHelper,
         private $kernelDebug,
-        AdapterInterface $cacheService
+        AdapterInterface $cacheService,
+        RequestStack $requestStack
     ) {
+        /** @var Request $request */
+        $request = $requestStack->getMainRequest() ?? $requestStack->getCurrentRequest();
         $this->packages = [];
-        $this->templateEnv = Request::$isAdminEnv ? TemplateDefinition::BACK_OFFICE_SUBDIR : TemplateDefinition::FRONT_OFFICE_SUBDIR;
-        $this->activeTemplate = Request::$isAdminEnv ? $this->templateHelper->getActiveAdminTemplate() : $this->templateHelper->getActiveFrontTemplate();
+        $this->templateEnv = $this->isAdminEnv($request) ? TemplateDefinition::BACK_OFFICE_SUBDIR : TemplateDefinition::FRONT_OFFICE_SUBDIR;
+        $this->activeTemplate = $this->isAdminEnv($request) ? $this->templateHelper->getActiveAdminTemplate() : $this->templateHelper->getActiveFrontTemplate();
 
         $this->templateSymlinkDest = THELIA_WEB_DIR.'templates-assets';
         $this->moduleSymlinkDest = THELIA_WEB_DIR.'modules-assets';
@@ -63,6 +67,11 @@ class Encore extends AbstractSmartyPlugin
             $this->packages['manifest'] = new Package(new JsonManifestVersionStrategy($this->activeTemplate->getAbsoluteAssetsPath().'/manifest.json'));
             $this->createSymlink($this->activeTemplate->getAbsoluteAssetsPath(), $this->templateSymlinkDest.DS.$this->activeTemplate->getPath().DS.$this->activeTemplate->getAssetsPath(), true);
         }
+    }
+
+    private function isAdminEnv(Request $request): bool
+    {
+        return false !== preg_match('#/admin/?.*#', $request->getPathInfo());
     }
 
     public function functionModuleAsset($args)
