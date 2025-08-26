@@ -69,9 +69,13 @@ class Encore extends AbstractSmartyPlugin
         }
     }
 
-    private function isAdminEnv(Request $request): bool
+    private function isAdminEnv(?Request $request): bool
     {
-        return false !== preg_match('#/admin/?.*#', $request->getPathInfo());
+        if (null === $request) {
+            return false;
+        }
+        $match = preg_match('#/admin/?.*#', $request->getPathInfo());
+        return false !== $match && 0 !== $match;
     }
 
     public function functionModuleAsset($args)
