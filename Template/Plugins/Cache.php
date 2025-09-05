@@ -17,7 +17,7 @@ use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Model\Customer;
-use Thelia\TaxEngine\TaxEngine;
+use Thelia\Domain\Taxation\TaxEngine\TaxEngine;
 use TheliaSmarty\Template\AbstractSmartyPlugin;
 use TheliaSmarty\Template\SmartyPluginDescriptor;
 

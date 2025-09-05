@@ -21,7 +21,7 @@ use Thelia\Model\FolderQuery;
 use Thelia\Model\ProductPriceQuery;
 use Thelia\Model\ProductSaleElementsQuery;
 use Thelia\Model\RewritingUrlQuery;
-use Thelia\TaxEngine\TaxEngine;
+use Thelia\Domain\Taxation\TaxEngine\TaxEngine;
 use Thelia\Tools\URL;
 use TheliaSmarty\Events\PseByProductEvent;
 use TheliaSmarty\Template\AbstractSmartyPlugin;
