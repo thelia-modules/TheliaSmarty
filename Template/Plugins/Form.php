@@ -89,9 +89,9 @@ class Form extends AbstractSmartyPlugin
         TheliaFormFactory $formFactory,
         ParserContext $parserContext,
         TranslatorInterface $translator,
+        protected ParserResolver $parserResolver,
         #[Autowire('%Thelia.parser.forms%')]
         protected array $formDefinition = [],
-        protected ParserResolver $parserResolver,
     ) {
         $this->formFactory = $formFactory;
         $this->parserContext = $parserContext;
@@ -812,7 +812,7 @@ class Form extends AbstractSmartyPlugin
      *
      * Get definition, return hash
      */
-    protected function getFormStackHash(BaseForm $form, SymfonyForm $field = null)
+    protected function getFormStackHash(BaseForm $form, ?SymfonyForm $field = null)
     {
         $build = $form::class.':'.$form->getType();
 
@@ -997,7 +997,7 @@ class Form extends AbstractSmartyPlugin
      *
      * Initialize a collection into this class ( values stack, counting table )
      */
-    protected function initializeCollection(BaseForm $form, SymfonyForm $collection, SymfonyForm $row = null)
+    protected function initializeCollection(BaseForm $form, SymfonyForm $collection, ?SymfonyForm $row = null)
     {
         $hash = $this->getFormStackHash($form, $collection);
 

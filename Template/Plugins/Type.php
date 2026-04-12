@@ -12,7 +12,6 @@
 
 namespace TheliaSmarty\Template\Plugins;
 
-use Thelia\Core\Template\Smarty\Plugins\an;
 use TheliaSmarty\Template\AbstractSmartyPlugin;
 use TheliaSmarty\Template\SmartyPluginDescriptor;
 

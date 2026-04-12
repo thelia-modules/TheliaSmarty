@@ -116,7 +116,7 @@ abstract class AbstractSmartyPlugin implements SmartyPluginInterface
             return $this->$functionName($params, $smarty);
         }
 
-        throw new \BadMethodCallException("Smarty plugin method '$functionName' was not found.", $this, $functionName);
+        throw new \BadMethodCallException("Smarty plugin method '$functionName' was not found.");
     }
 
     protected function compatibilityFunctionCaller($params, $smarty, $functionName)

@@ -134,18 +134,12 @@ class Format extends AbstractSmartyPlugin
 
             $localizedDate = $formatter->format($date);
         } else {
-            // for backward compatibility
-            if (\function_exists('setlocale')) {
-                // Save the current locale
-                $systemLocale = setlocale(\LC_TIME, 0);
-                setlocale(\LC_TIME, $locale);
-                $localizedDate = strftime($format, $date->getTimestamp());
-                // Restore the locale
-                setlocale(\LC_TIME, $systemLocale);
-            } else {
-                // setlocale() function not available => error
-                throw new SmartyPluginException('The setlocale() function is not available on your system.');
-            }
+            // Convert strftime %-tokens to ICU format for IntlDateFormatter
+            $icuFormat = $this->convertStrftimeToIcu($format);
+            $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::FULL, \IntlDateFormatter::FULL);
+            $formatter->setPattern($icuFormat);
+
+            $localizedDate = $formatter->format($date);
         }
 
         return $localizedDate;
@@ -353,6 +347,45 @@ class Format extends AbstractSmartyPlugin
                 'c' => 'yyyy-MM-dd\'T\'HH:mm:ssxxx', // ISO 8601 date, e.g. 2004-02-12T15:19:21+00:00
                 'r' => 'eee, dd MMM yyyy HH:mm:ss xx', // RFC 2822 formatted date, Example: Thu, 21 Dec 2000 16:01:07 +0200
                 'U' => '',      // Seconds since the Unix Epoch (January 1 1970 00:00:00 GMT)
+            ]
+        );
+    }
+
+    /**
+     * Convert a strftime()-style format string (%-tokens) to ICU date format.
+     */
+    protected function convertStrftimeToIcu(string $format): string
+    {
+        return strtr(
+            $format,
+            [
+                '%Y' => 'yyyy',   // 4-digit year
+                '%y' => 'yy',     // 2-digit year
+                '%m' => 'MM',     // Month with leading zero
+                '%d' => 'dd',     // Day with leading zero
+                '%e' => 'd',      // Day without leading zero
+                '%H' => 'HH',     // 24-hour with leading zero
+                '%I' => 'hh',     // 12-hour with leading zero
+                '%M' => 'mm',     // Minutes with leading zero
+                '%S' => 'ss',     // Seconds with leading zero
+                '%p' => 'a',      // AM/PM
+                '%P' => 'a',      // am/pm (ICU handles casing via locale)
+                '%A' => 'EEEE',   // Full weekday name
+                '%a' => 'EEE',    // Abbreviated weekday name
+                '%B' => 'MMMM',   // Full month name
+                '%b' => 'MMM',    // Abbreviated month name
+                '%h' => 'MMM',    // Same as %b
+                '%Z' => 'zzz',    // Timezone abbreviation
+                '%z' => 'xx',     // Timezone offset (+0200)
+                '%j' => 'DDD',    // Day of year
+                '%G' => 'YYYY',   // ISO 8601 year
+                '%g' => 'YY',     // ISO 8601 2-digit year
+                '%u' => 'e',      // Day of week (1=Monday)
+                '%w' => '',       // Day of week (0=Sunday) — no ICU equivalent
+                '%V' => 'ww',     // ISO week number
+                '%n' => "\n",     // Newline
+                '%t' => "\t",     // Tab
+                '%%' => "'%'",    // Literal percent (escaped for ICU)
             ]
         );
     }

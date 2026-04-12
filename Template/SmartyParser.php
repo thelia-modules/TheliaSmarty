@@ -58,6 +58,8 @@ class SmartyParser extends \Smarty implements ParserInterface
     /** @var bool */
     protected $useMethodCallWrapper = false;
 
+    protected int $status = 200;
+
     /**
      * @param string $kernelEnvironment
      * @param bool   $kernelDebug

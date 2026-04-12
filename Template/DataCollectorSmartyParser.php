@@ -140,7 +140,7 @@ class DataCollectorSmartyParser extends \Smarty implements ParserInterface
      */
     public function __call($method, $args)
     {
-        return $this->translator->{$method}(...$args);
+        return $this->smartyParser->{$method}(...$args);
     }
 
     public function supportTemplateRender(string $templatePath, ?string $templateName): bool

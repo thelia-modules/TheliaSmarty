@@ -129,7 +129,7 @@ class CartPostage extends AbstractSmartyPlugin
      *      the default country
      *  - the default country for the shop if it exists
      */
-    protected function getDeliveryInformation(Customer $customer = null)
+    protected function getDeliveryInformation(?Customer $customer = null)
     {
         $address = null;
         // get the selected delivery address
@@ -189,7 +189,7 @@ class CartPostage extends AbstractSmartyPlugin
      *
      * @throws PropelException
      */
-    protected function getCheapestDelivery(Address $address = null, Country $country = null, State $state = null): void
+    protected function getCheapestDelivery(?Address $address = null, ?Country $country = null, ?State $state = null): void
     {
         $cart = $this->getCurrentRequest()->getSession()->getSessionCart();
 
