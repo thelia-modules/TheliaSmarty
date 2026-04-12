@@ -138,7 +138,7 @@ class DataCollectorSmartyParser extends \Smarty implements ParserInterface
     /**
      * Passes through all unknown calls onto the smarty parser object.
      */
-    public function __call($method, $args)
+    public function __call($method, $args): mixed
     {
         return $this->smartyParser->{$method}(...$args);
     }

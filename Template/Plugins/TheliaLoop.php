@@ -13,7 +13,7 @@
 namespace TheliaSmarty\Template\Plugins;
 
 use Propel\Runtime\Util\PropelModelPager;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -79,7 +79,7 @@ class TheliaLoop extends AbstractSmartyPlugin
         SecurityContext $securityContext,
         TranslatorInterface $translator,
         bool $kernelDebug,
-        #[TaggedIterator('thelia.loop')]
+        #[AutowireIterator('thelia.loop')]
         iterable $theliaLoops,
         string $kernelEnvironment
     ) {
