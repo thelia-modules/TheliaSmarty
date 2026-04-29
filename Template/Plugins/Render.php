@@ -14,6 +14,7 @@ namespace TheliaSmarty\Template\Plugins;
 
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
@@ -98,8 +99,8 @@ class Render extends AbstractSmartyPlugin
 
         // Then build the request
         $requestObject = clone $this->requestStack->getCurrentRequest();
-        $requestObject->query = new ParameterBag($query);
-        $requestObject->request = new ParameterBag($request);
+        $requestObject->query = new InputBag($query);
+        $requestObject->request = new InputBag($request);
         $requestObject->attributes = new ParameterBag(['_controller' => $action]);
 
         // Apply the method
