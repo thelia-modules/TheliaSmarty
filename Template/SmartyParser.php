@@ -321,11 +321,13 @@ class SmartyParser extends \Smarty implements ParserInterface
      *
      * @param bool|string $webAssetTemplateName false to use the current template path, or a template name to
      *                                          load assets from this template instead of the current one
-     *
-     * @return TemplateDefinition
      */
-    public function getTemplateDefinition($webAssetTemplateName = false): TemplateDefinition
+    public function getTemplateDefinition($webAssetTemplateName = false): ?TemplateDefinition
     {
+        if (null === $this->templateDefinition) {
+            return null;
+        }
+
         // Deep clone of template definition. We could change the template descriptor of template definition,
         // and we don't want to change the current template definition.
 

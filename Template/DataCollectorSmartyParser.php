@@ -105,7 +105,7 @@ class DataCollectorSmartyParser extends \Smarty implements ParserInterface
         $this->smartyParser->setTemplateDefinition($templateDefinition, $fallbackToDefaultTemplate);
     }
 
-    public function getTemplateDefinition($webAssetTemplateName = false): TemplateDefinition
+    public function getTemplateDefinition($webAssetTemplateName = false): ?TemplateDefinition
     {
         return $this->smartyParser->getTemplateDefinition();
     }
