@@ -877,6 +877,27 @@ class DataAccessFunctions extends AbstractSmartyPlugin
                 }
             }
 
+            // Graceful fallback: when the chosen image is missing or empty (favicon/banner shipped
+            // as 0-byte placeholders in fresh installs), fall back to the bundled thelia.svg logo so
+            // image processing does not throw and the page keeps rendering.
+            if (!file_exists($imageSourcePath) || @filesize($imageSourcePath) === 0) {
+                $fallbackPath = $uploadDir.DS.'thelia.svg';
+                if (file_exists($fallbackPath) && @filesize($fallbackPath) > 0) {
+                    $imageSourcePath = $fallbackPath;
+                    if ($type === 'favicon') {
+                        $template->assign('MEDIA_MIME_TYPE', 'image/svg+xml');
+                        $skipImageTransform = true;
+                    }
+                } else {
+                    $template->assign('MEDIA_URL', '');
+                    if (isset($content)) {
+                        return $content;
+                    }
+
+                    return null;
+                }
+            }
+
             $event = new ImageEvent();
             $event->setSourceFilepath($imageSourcePath)
                 ->setCacheSubdirectory('store');
