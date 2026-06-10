@@ -63,10 +63,13 @@ class UrlGenerator extends AbstractSmartyPlugin
         // Do not invoke index.php in URL (get a static file in web space
         $file = $this->getParam($params, 'file', null);
         $routeId = $this->getParam($params, 'route_id', null);
-        // select default router
-        if ($this->getRequest()->fromAdmin()) {
+        // Select the default router. Symfony sub-requests (fragment rendering from the Twig
+        // back-office) provide a plain HttpFoundation Request without fromAdmin()/fromFront().
+        $request = $this->getRequest();
+
+        if ($request instanceof Request && $request->fromAdmin()) {
             $defaultRouter = 'admin';
-        } elseif ($this->getRequest()->fromFront()) {
+        } elseif ($request instanceof Request && $request->fromFront()) {
             $defaultRouter = 'front';
         } else {
             $defaultRouter = null;
