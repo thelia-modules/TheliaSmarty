@@ -305,11 +305,22 @@ class SmartyParser extends \Smarty implements ParserInterface
         // -------------------------------------------------------------------------------------------------------------
 
         if ($fallbackToDefaultTemplate) {
+            if ('default' !== $templateDefinition->getName()) {
+                $defaultTemplate = new TemplateDefinition('default', $type);
+                if (is_dir($defaultTemplate->getAbsolutePath())) {
+                    $this->addTemplateDir($defaultTemplate->getAbsolutePath(), self::TEMPLATE_ASSETS_KEY.'-default-fallback');
+                    $this->addConfigDir($defaultTemplate->getAbsolutePath().DS.'configs', self::TEMPLATE_ASSETS_KEY.'-default-fallback');
+                }
+            }
+
             if (isset($this->templateDirectories[$type]['default'])) {
                 foreach ($this->templateDirectories[$type]['default'] as $key => $directory) {
                     if (null === $this->getTemplateDir($key)) {
                         $this->addTemplateDir($directory, $key);
                         $this->addConfigDir($directory.DS.'configs', $key);
+                    } elseif (rtrim((string) $this->getTemplateDir($key), DS) !== rtrim((string) $directory, DS)) {
+                        $this->addTemplateDir($directory, $key.'-default-fallback');
+                        $this->addConfigDir($directory.DS.'configs', $key.'-default-fallback');
                     }
                 }
             }
