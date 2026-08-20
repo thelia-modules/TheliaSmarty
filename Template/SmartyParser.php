@@ -49,6 +49,9 @@ class SmartyParser extends \Smarty implements ParserInterface
 
     protected $templateDirectories = [];
 
+    /** @var array<string, array{list<string>, list<string>}> */
+    private array $templateChainCache = [];
+
     /** @var string */
     protected $env;
 
@@ -550,9 +553,145 @@ class SmartyParser extends \Smarty implements ParserInterface
         }
     }
 
+    /**
+     * A view is renderable when a file with one of the parser extensions exists in one of the
+     * directories render() would serve it from: the theme, the themes it inherits from, the
+     * directories modules contribute to any of them, and whatever is already registered on
+     * the Smarty instance - the back office and the templates modules add to it rely on that
+     * cross-directory fallback.
+     *
+     * Answering yes to every name, as the path traversal guard alone does, makes the resolver
+     * unable to report a view no theme ships: Smarty is the last parser probed, so it claimed
+     * every unknown view and the decision moved to render time.
+     */
     public function supportTemplateRender(string $templatePath, ?string $templateName): bool
     {
-        return $this->checkTemplate($templateName);
+        if (null === $templateName || '' === $templateName || '/' === $templateName) {
+            $templateName = 'index';
+        }
+
+        if (!$this->checkTemplate($templateName)) {
+            return false;
+        }
+
+        foreach ($this->getTemplateSearchDirectories($templatePath) as $directory) {
+            foreach ($this->getCandidateFileNames($templateName) as $fileName) {
+                $file = $directory.DS.ltrim($fileName, DS);
+
+                if (is_file($file) && $this->isInsideDirectory($directory, $file)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getTemplateSearchDirectories(string $templatePath): array
+    {
+        // The directories render() probes through templateExists(). The resolver asks whether
+        // a view is renderable before setting the template definition, so this list is only
+        // part of the answer: it holds what an earlier render left registered.
+        $directories = array_map(
+            static fn ($directory): string => rtrim((string) $directory, DS),
+            array_values($this->getTemplateDir())
+        );
+
+        $templatePath = rtrim($templatePath, DS);
+
+        if ('' === $templatePath) {
+            return array_values(array_unique($directories));
+        }
+
+        $directories[] = $templatePath;
+
+        $type = array_search(basename(\dirname($templatePath)), TemplateDefinition::$standardTemplatesSubdirs, true);
+
+        if (!\is_int($type)) {
+            return array_values(array_unique($directories));
+        }
+
+        [$parentDirectories, $templateNames] = $this->getTemplateChain($templatePath, $type);
+
+        $directories = array_merge($directories, $parentDirectories);
+
+        // The "default" template and the directories modules contribute to it: every caller
+        // resolving a parser sets the template definition with the fallback to the default
+        // template enabled, so render() searches them as well.
+        $templateNames[] = 'default';
+        $defaultTemplatePath = \dirname($templatePath).DS.'default';
+
+        if (is_dir($defaultTemplatePath)) {
+            $directories[] = $defaultTemplatePath;
+        }
+
+        foreach (array_unique($templateNames) as $templateName) {
+            foreach ($this->templateDirectories[$type][$templateName] ?? [] as $moduleTemplateDirectory) {
+                $directories[] = rtrim((string) $moduleTemplateDirectory, DS);
+            }
+        }
+
+        return array_values(array_unique($directories));
+    }
+
+    /**
+     * The templates the requested one inherits from, as directories and as names. Resolving
+     * the chain reads and parses the template descriptors, so it is resolved once per
+     * template: the question is asked on every rendered view, and on every candidate parser.
+     *
+     * @return array{list<string>, list<string>}
+     */
+    private function getTemplateChain(string $templatePath, int $type): array
+    {
+        if (isset($this->templateChainCache[$templatePath])) {
+            return $this->templateChainCache[$templatePath];
+        }
+
+        $directories = [];
+        $templateNames = [basename($templatePath)];
+
+        try {
+            foreach ((new TemplateDefinition($templateNames[0], $type))->getParentList() ?? [] as $parentTemplateDefinition) {
+                $directories[] = rtrim($parentTemplateDefinition->getAbsolutePath(), DS);
+                $templateNames[] = $parentTemplateDefinition->getName();
+            }
+        } catch (\Throwable) {
+            // Reading a template descriptor goes through Tlog, hence the Propel models, so it
+            // does more than read a file: outside a booted kernel it fails outright. A template
+            // whose descriptor cannot be read simply has no parent chain to walk.
+        }
+
+        return $this->templateChainCache[$templatePath] = [$directories, $templateNames];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function getCandidateFileNames(string $templateName): array
+    {
+        foreach ($this->getFileExtensions() as $fileExtension) {
+            if (str_ends_with($templateName, '.'.$fileExtension)) {
+                return [$templateName];
+            }
+        }
+
+        return array_map(
+            static fn (string $fileExtension): string => $templateName.'.'.$fileExtension,
+            $this->getFileExtensions()
+        );
+    }
+
+    private function isInsideDirectory(string $directory, string $file): bool
+    {
+        $realDirectory = realpath($directory);
+        $realFile = realpath($file);
+
+        return false !== $realDirectory
+            && false !== $realFile
+            && str_starts_with($realFile, rtrim($realDirectory, DS).DS);
     }
 
     public function getFileExtension(): string
