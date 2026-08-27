@@ -142,6 +142,57 @@ class SmartyParserSupportTemplateRenderTest extends TestCase
         $this->assertTrue($parser->supportTemplateRender($this->themeDirectory(), 'page.html'));
     }
 
+    /**
+     * render() probes both handled extensions for a name carrying one of them: asked for
+     * "page.html", it serves "page.tpl" when that is the file the directories hold. Answering
+     * for the requested name alone made the resolver report the view as missing.
+     */
+    public function testANameCarryingAnExtensionIsRenderableFromTheOtherHandledExtension(): void
+    {
+        $parser = $this->createParser();
+
+        touch($this->themeDirectory().DS.'page.tpl');
+
+        $this->assertFileDoesNotExist($this->themeDirectory().DS.'page.html');
+        $this->assertTrue($parser->supportTemplateRender($this->themeDirectory(), 'page.html'));
+    }
+
+    /**
+     * A name carrying an extension the parser does not handle - a mail view named after its
+     * ".txt" file - is served by render() from the file whose extension it replaces with a
+     * handled one, never from the name plus an extension.
+     */
+    public function testANameCarryingAnUnhandledExtensionIsMappedTheWayRenderMapsIt(): void
+    {
+        $parser = $this->createParser();
+
+        touch($this->themeDirectory().DS.'order-confirmation.html');
+
+        $this->assertTrue($parser->supportTemplateRender($this->themeDirectory(), 'order-confirmation.txt'));
+    }
+
+    public function testANameIsNotClaimedWhenTheOnlyMatchingFileAppendsAnExtensionToIt(): void
+    {
+        $parser = $this->createParser();
+
+        // What render() looks for is "order-confirmation.html": a file named after the
+        // requested name plus an extension is not one it would load, so the view is not
+        // renderable and the parser must not claim it.
+        touch($this->themeDirectory().DS.'order-confirmation.txt.html');
+
+        $this->assertFileDoesNotExist($this->themeDirectory().DS.'order-confirmation.html');
+        $this->assertFalse($parser->supportTemplateRender($this->themeDirectory(), 'order-confirmation.txt'));
+    }
+
+    public function testABareNameStillAnswersForEveryHandledExtension(): void
+    {
+        $parser = $this->createParser();
+
+        touch($this->themeDirectory().DS.'page.tpl');
+
+        $this->assertTrue($parser->supportTemplateRender($this->themeDirectory(), 'page'));
+    }
+
     public function testAViewNoDirectoryHoldsIsNotRenderable(): void
     {
         $parser = $this->createParser();
