@@ -443,11 +443,7 @@ class SmartyParser extends \Smarty implements ParserInterface
     {
         $isFound = false;
         foreach($this->getFileExtensions() as $fileExtension) {
-            $tempRealTemplateName = $realTemplateName;
-            if (!str_ends_with($realTemplateName, '.'.$fileExtension)) {
-                $tempRealTemplateName = (string) pathinfo($tempRealTemplateName, \PATHINFO_FILENAME);
-                $tempRealTemplateName .= '.'.$fileExtension;
-            }
+            $tempRealTemplateName = $this->mapTemplateNameToExtension($realTemplateName, $fileExtension);
             if (false !== $this->templateExists($tempRealTemplateName) && false !== $this->checkTemplate($tempRealTemplateName)) {
                 $isFound = true;
                 $realTemplateName = $tempRealTemplateName;
@@ -668,20 +664,50 @@ class SmartyParser extends \Smarty implements ParserInterface
     }
 
     /**
+     * The files render() may serve the requested name from.
+     *
+     * A name carrying an extension is mapped the way render() maps it, so that detection and
+     * rendering agree on it: render() serves such a name from the file whose extension it
+     * replaces with a handled one, and from the name itself when the extension it carries is
+     * already handled. Returning the name alone, or the name plus an extension, made the
+     * parser reject views it renders - a ".html" name a template only ships as ".tpl", a mail
+     * template named after its ".txt" file - and claim views it does not, whose only file on
+     * disk is the requested name plus an extension.
+     *
+     * A name carrying no extension is the one case where the name is not yet the one render()
+     * will be given: the resolver is asked about a bare view name, then render() is called
+     * with that name suffixed. Both handled extensions are appended to it, as before.
+     *
      * @return list<string>
      */
     private function getCandidateFileNames(string $templateName): array
     {
-        foreach ($this->getFileExtensions() as $fileExtension) {
-            if (str_ends_with($templateName, '.'.$fileExtension)) {
-                return [$templateName];
-            }
+        if ('' === pathinfo($templateName, \PATHINFO_EXTENSION)) {
+            return array_map(
+                static fn (string $fileExtension): string => $templateName.'.'.$fileExtension,
+                $this->getFileExtensions()
+            );
         }
 
-        return array_map(
-            static fn (string $fileExtension): string => $templateName.'.'.$fileExtension,
+        $candidates = array_map(
+            fn (string $fileExtension): string => $this->mapTemplateNameToExtension($templateName, $fileExtension),
             $this->getFileExtensions()
         );
+
+        return array_values(array_unique($candidates));
+    }
+
+    /**
+     * The file render() serves the given name from for one handled extension: the name itself
+     * when it already carries that extension, the name with its extension replaced otherwise.
+     */
+    private function mapTemplateNameToExtension(string $templateName, string $fileExtension): string
+    {
+        if (str_ends_with($templateName, '.'.$fileExtension)) {
+            return $templateName;
+        }
+
+        return (string) pathinfo($templateName, \PATHINFO_FILENAME).'.'.$fileExtension;
     }
 
     private function isInsideDirectory(string $directory, string $file): bool
