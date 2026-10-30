@@ -18,7 +18,7 @@ use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Core\Security\Exception\AuthenticationException;
 use Thelia\Core\Security\Exception\AuthorizationException;
 use Thelia\Core\Security\SecurityContext;
-use Thelia\Exception\OrderException;
+use Thelia\Domain\Order\Exception\OrderException;
 use Thelia\Model\AddressQuery;
 use Thelia\Model\ModuleQuery;
 use TheliaSmarty\Template\AbstractSmartyPlugin;
