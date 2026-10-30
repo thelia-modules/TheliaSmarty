@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\HttpFoundation\Session\Session;
 use Thelia\Model\AddressQuery;
+use Thelia\Model\OrderAddress;
 use Thelia\Model\OrderAddressQuery;
 use Thelia\Tools\AddressFormat;
 use Thelia\Tools\DateTimeFormat;
@@ -436,9 +437,22 @@ class Format extends AbstractSmartyPlugin
         // get address or order address
         $address = null;
         if (null !== $id = $this->getParam($params, 'address', null)) {
-            if (null === $address = AddressQuery::create()->findPk($id)) {
+            if (null === $customerAddress = AddressQuery::create()->findPk($id)) {
                 return '';
             }
+
+            // The core formats an order address: a transient copy of the customer address stands in for it.
+            $address = (new OrderAddress())
+                ->setCompany($customerAddress->getCompany())
+                ->setFirstname($customerAddress->getFirstname())
+                ->setLastname($customerAddress->getLastname())
+                ->setAddress1($customerAddress->getAddress1())
+                ->setAddress2($customerAddress->getAddress2())
+                ->setAddress3($customerAddress->getAddress3())
+                ->setZipcode($customerAddress->getZipcode())
+                ->setCity($customerAddress->getCity())
+                ->setCountryId($customerAddress->getCountryId())
+                ->setStateId($customerAddress->getStateId());
         } elseif (null !== $id = $this->getParam($params, 'order_address', null)) {
             if (null === $address = OrderAddressQuery::create()->findPk($id)) {
                 return '';
