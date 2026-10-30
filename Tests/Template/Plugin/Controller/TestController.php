@@ -12,15 +12,15 @@
 
 namespace TheliaSmarty\Tests\Template\Plugin\Controller;
 
-use Thelia\Controller\Front\BaseFrontController;
-use Thelia\Core\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Class TestController.
  *
  * @author Benjamin Perche <bperche@openstudio.fr>
  */
-class TestController extends BaseFrontController
+class TestController
 {
     public function testAction()
     {
@@ -32,18 +32,18 @@ class TestController extends BaseFrontController
         return new Response($paramA.$paramB);
     }
 
-    public function testMethodAction()
+    public function testMethodAction(Request $currentRequest)
     {
-        return $this->getRequest()->getMethod();
+        return $currentRequest->getMethod();
     }
 
-    public function testQueryAction()
+    public function testQueryAction(Request $currentRequest)
     {
-        return $this->getRequest()->query->get('foo');
+        return $currentRequest->query->get('foo');
     }
 
-    public function testRequestAction()
+    public function testRequestAction(Request $currentRequest)
     {
-        return $this->getRequest()->request->get('foo').$this->getRequest()->getMethod();
+        return $currentRequest->request->get('foo').$currentRequest->getMethod();
     }
 }

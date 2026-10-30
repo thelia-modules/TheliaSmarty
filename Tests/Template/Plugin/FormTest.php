@@ -12,7 +12,7 @@
 
 namespace TheliaSmarty\Tests\Template\Plugin;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Thelia\Core\Template\ParserContext;
 use TheliaSmarty\Template\Plugins\Form;
 
 /**
@@ -27,20 +27,11 @@ class FormTest extends SmartyPluginTestCase
      */
     protected $plugin;
 
-    /**
-     * @return \TheliaSmarty\Template\AbstractSmartyPlugin
-     */
-    protected function getPlugin(ContainerBuilder $container)
+    protected function setUp(): void
     {
-        $this->plugin = new Form(
-            $container->get('thelia.form_factory'),
-            $container->get('thelia.parser.context'),
-            $container->get('thelia.parser')
-        );
+        parent::setUp();
 
-        $this->plugin->setFormDefinition($container->get('Thelia.parser.forms'));
-
-        return $this->plugin;
+        $this->plugin = $this->container->get(Form::class);
     }
 
     public function testSimpleStackedForm(): void
@@ -54,7 +45,7 @@ class FormTest extends SmartyPluginTestCase
         $this->plugin->generateForm(
             ['name' => 'thelia.empty'],
             '',
-            $this->createMock('\\Smarty_Internal_Template', [], [], '', false),
+            $this->createTemplate(),
             $repeat
         );
 
@@ -73,7 +64,7 @@ class FormTest extends SmartyPluginTestCase
         $this->plugin->generateForm(
             ['name' => 'thelia.empty'],
             '',
-            $this->createMock('\\Smarty_Internal_Template', [], [], '', false),
+            $this->createTemplate(),
             $repeat
         );
 
@@ -81,9 +72,7 @@ class FormTest extends SmartyPluginTestCase
         $this->assertNull($parserContext->popCurrentForm());
 
         // Let's even predict an exception
-        $this->expectException(
-            'TheliaSmarty\\Template\\Exception\\SmartyPluginException'
-        );
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage(
             'There is currently no defined form'
         );
@@ -102,55 +91,55 @@ class FormTest extends SmartyPluginTestCase
         $this->plugin->generateForm(
             ['name' => 'thelia.empty'],
             '',
-            $this->createMock('\\Smarty_Internal_Template', [], [], '', false),
+            $this->createTemplate(),
             $repeat
         );
 
         $this->assertInstanceOf('Thelia\\Form\\EmptyForm', $parserContext->getCurrentForm());
 
         // Then next one:
-        // eq: {form name="thelia.api.empty"}
+        // eq: {form name="thelia.admin.login"}
         $repeat = true;
         $this->plugin->generateForm(
-            ['name' => 'thelia.api.empty'],
+            ['name' => 'thelia.admin.login'],
             '',
-            $this->createMock('\\Smarty_Internal_Template', [], [], '', false),
+            $this->createTemplate(),
             $repeat
         );
 
-        $this->assertInstanceOf('Thelia\\Form\\Api\\ApiEmptyForm', $parserContext->getCurrentForm());
+        $this->assertInstanceOf('Thelia\\Form\\AdminLogin', $parserContext->getCurrentForm());
 
         // Third form:
-        // eq: {form name="thelia.empty.2"}
+        // eq: {form name="thelia.empty"}
         $repeat = true;
         $this->plugin->generateForm(
-            ['name' => 'thelia.empty.2'],
+            ['name' => 'thelia.empty'],
             '',
-            $this->createMock('\\Smarty_Internal_Template', [], [], '', false),
+            $this->createTemplate(),
             $repeat
         );
 
         $this->assertInstanceOf('Thelia\\Form\\EmptyForm', $parserContext->getCurrentForm());
 
         // Then, Let's close forms
-        // eq: {/form} {* related to {form name="thelia.empty.2"} *}
+        // eq: {/form} {* related to {form name="thelia.empty"} *}
         $repeat = false;
         $this->plugin->generateForm(
-            ['name' => 'thelia.empty.2'],
+            ['name' => 'thelia.empty'],
             '',
-            $this->createMock('\\Smarty_Internal_Template', [], [], '', false),
+            $this->createTemplate(),
             $repeat
         );
 
-        $this->assertInstanceOf('Thelia\\Form\\Api\\ApiEmptyForm', $parserContext->getCurrentForm());
+        $this->assertInstanceOf('Thelia\\Form\\AdminLogin', $parserContext->getCurrentForm());
 
         // Then, Let's close forms
-        // eq: {/form} {* related to {form name="thelia.api.empty"} *}
+        // eq: {/form} {* related to {form name="thelia.admin.login"} *}
         $repeat = false;
         $this->plugin->generateForm(
-            ['name' => 'thelia.api.empty'],
+            ['name' => 'thelia.admin.login'],
             '',
-            $this->createMock('\\Smarty_Internal_Template', [], [], '', false),
+            $this->createTemplate(),
             $repeat
         );
 
@@ -162,14 +151,12 @@ class FormTest extends SmartyPluginTestCase
         $this->plugin->generateForm(
             ['name' => 'thelia.empty'],
             '',
-            $this->createMock('\\Smarty_Internal_Template', [], [], '', false),
+            $this->createTemplate(),
             $repeat
         );
 
         // The exception
-        $this->expectException(
-            'TheliaSmarty\\Template\\Exception\\SmartyPluginException'
-        );
+        $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage(
             'There is currently no defined form'
         );
@@ -182,6 +169,17 @@ class FormTest extends SmartyPluginTestCase
      */
     protected function getParserContext()
     {
-        return $this->container->get('thelia.parser.context');
+        return $this->container->get(ParserContext::class);
+    }
+
+    /**
+     * A template bound to the parser, as the plugin reads the Smarty settings through it.
+     */
+    private function createTemplate(): \Smarty_Internal_Template
+    {
+        $template = $this->createStub(\Smarty_Internal_Template::class);
+        $template->smarty = $this->smarty;
+
+        return $template;
     }
 }

@@ -12,10 +12,6 @@
 
 namespace TheliaSmarty\Tests\Template\Plugin;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Thelia\Core\Controller\ControllerResolver;
-use TheliaSmarty\Template\Plugins\Render;
-
 /**
  * Class RenderTest.
  *
@@ -64,17 +60,5 @@ class RenderTest extends SmartyPluginTestCase
         $data = $this->render('testRequest.html');
 
         $this->assertEquals('barPOSTbazPUT', $data);
-    }
-
-    /**
-     * @return \TheliaSmarty\Template\AbstractSmartyPlugin
-     */
-    protected function getPlugin(ContainerBuilder $container)
-    {
-        return new Render(
-            new ControllerResolver($container),
-            $container->get('request_stack'),
-            $container
-        );
     }
 }

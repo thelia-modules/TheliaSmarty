@@ -12,10 +12,8 @@
 
 namespace TheliaSmarty\Tests\Template\Plugin;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Thelia\Core\HttpFoundation\Request;
-use Thelia\Model\AddressQuery;
 use Thelia\Model\CountryQuery;
 use Thelia\Model\CurrencyQuery;
 use Thelia\Model\StateQuery;
@@ -129,10 +127,9 @@ class FormatTest extends SmartyPluginTestCase
     {
         // Test for address in France
         $countryFR = CountryQuery::create()->filterByIsoalpha2('FR')->findOne();
-        $address = AddressQuery::create()->findOne();
-        $address
-            ->setCountryId($countryFR->getId())
-            ->save();
+        $fixtures = $this->createFixtureFactory();
+        $title = $fixtures->customerTitle();
+        $address = $fixtures->address($fixtures->customer($title), $countryFR, $title);
 
         $data = $this->renderString(
             '{format_address address=$address locale="fr_FR"}',
@@ -141,13 +138,9 @@ class FormatTest extends SmartyPluginTestCase
             ]
         );
 
-        $title = $address->getCustomerTitle()
-            ->setLocale('fr_FR')
-            ->getShort();
-
         $expected = [
             '<p >',
-            sprintf('<span class="recipient">%s %s %s</span><br>', $title, $address->getLastname(), $address->getFirstname()),
+            sprintf('<span class="given-name">%s</span> <span class="family-name">%s</span><br>', $address->getFirstname(), $address->getLastname()),
             sprintf('<span class="address-line1">%s</span><br>', $address->getAddress1()),
             sprintf('<span class="postal-code">%s</span> <span class="locality">%s</span><br>', $address->getZipcode(), $address->getCity()),
             '<span class="country">France</span>',
@@ -171,18 +164,14 @@ class FormatTest extends SmartyPluginTestCase
             ]
         );
 
-        $title = $address->getCustomerTitle()
-            ->setLocale('en_US')
-            ->getShort();
-
         $expected = [
             '<p >',
-            sprintf('<span class="recipient">%s %s %s</span><br>', $title, $address->getLastname(), $address->getFirstname()),
+            sprintf('<span class="given-name">%s</span> <span class="family-name">%s</span><br>', $address->getFirstname(), $address->getLastname()),
             sprintf('<span class="address-line1">%s</span><br>', $address->getAddress1()),
             sprintf(
                 '<span class="locality">%s</span>, <span class="administrative-area">%s</span> <span class="postal-code">%s</span><br>',
                 $address->getCity(),
-                $stateDC->getIsocode(),
+                $countryUS->getIsoalpha2().'-'.$stateDC->getIsocode(),
                 $address->getZipcode()
             ),
             '<span class="country">United States</span>',
@@ -208,21 +197,11 @@ class FormatTest extends SmartyPluginTestCase
         );
 
         $expected = [
-            sprintf('%s %s %s', $title, $address->getLastname(), $address->getFirstname()),
+            sprintf('%s %s', $address->getFirstname(), $address->getLastname()),
             sprintf('%s', $address->getAddress1()),
-            sprintf('%s, %s %s', $address->getCity(), $stateDC->getIsocode(), $address->getZipcode()),
+            sprintf('%s, %s %s', $address->getCity(), $countryUS->getIsoalpha2().'-'.$stateDC->getIsocode(), $address->getZipcode()),
             'United States',
         ];
         $this->assertEquals($data, implode("\n", $expected));
-    }
-
-    /**
-     * @return \TheliaSmarty\Template\AbstractSmartyPlugin
-     */
-    protected function getPlugin(ContainerBuilder $container)
-    {
-        $this->requestStack = $container->get('request_stack');
-
-        return new Format($this->requestStack);
     }
 }
