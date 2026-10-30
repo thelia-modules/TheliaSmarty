@@ -45,6 +45,9 @@ class TheliaSmarty extends BaseModule
                 __DIR__.'/I18n',
                 __DIR__.'/I18n/*',
                 __DIR__.'/I18n/**/*',
+                __DIR__.'/Tests',
+                __DIR__.'/Tests/*',
+                __DIR__.'/Tests/**/*',
                 __DIR__.'/Template/Assets/EncoreModuleAssetsPathPackage.php'
             ])
             ->autowire(true)
