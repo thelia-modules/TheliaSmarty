@@ -423,7 +423,7 @@ class Form extends AbstractSmartyPlugin
      * @throws \SmartyException
      * @throws \TheliaSmarty\Template\Exception\SmartyPluginException
      *
-     * @return string
+     * @return string|null
      */
     public function customFormFieldRendering($params, $content, $template, &$repeat)
     {

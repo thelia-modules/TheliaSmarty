@@ -212,7 +212,7 @@ HTML;
      * @param \TheliaSmarty\Template\SmartyParser $smarty
      * @param bool                                $repeat
      *
-     * @return string the generated content
+     * @return string|null the generated content, null when the block opens
      */
     public function processHookBlock($params, $content, $smarty, &$repeat)
     {

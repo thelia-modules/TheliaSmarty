@@ -131,7 +131,7 @@ class Render extends AbstractSmartyPlugin
             return $param;
         }
 
-        parse_str($param, $param);
+        parse_str((string) $param, $param);
 
         if (false === $param) {
             return [];

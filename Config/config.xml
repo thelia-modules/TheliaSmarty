@@ -18,7 +18,7 @@
 
     <service id="smarty.plugin.format" class="TheliaSmarty\Template\Plugins\Format"/>
 
-    <service id="smarty.plugin.thelialoop" class="TheliaSmarty\Template\Plugins\TheliaLoop" public="true"/>
+    <service id="smarty.plugin.thelialoop" alias="TheliaSmarty\Template\Plugins\TheliaLoop" public="true"/>
 
     <service id="smarty.plugin.cartpostage" class="TheliaSmarty\Template\Plugins\CartPostage"/>
 
